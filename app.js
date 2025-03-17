@@ -3,46 +3,59 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var mongoose = require('mongoose')
+var mongoose = require('mongoose');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var productsRouter = require('./routes/products');
+var categoriesRouter = require('./routes/categories');
 
 var app = express();
 
-mongoose.connect('mongodb://localhost:27017/S2');
-mongoose.connection.on('connected',()=>{
-  console.log('connected');
-})
+// 🔹 Kết nối MongoDB với lỗi rõ ràng hơn
+const mongoURI = "mongodb://127.0.0.1:27017/s2"; 
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
 
+mongoose.connection.on("connected", () => {
+  console.log("✅ Connected to MongoDB");
+});
 
-// view engine setup
+mongoose.connection.on("error", (err) => {
+  console.error("❌ MongoDB connection error:", err);
+});
+
+// 🔹 Cấu hình view engine
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+// 🔹 Middleware
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// 🔹 Route chính
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/products', require('./routes/products'));
-app.use('/categories', require('./routes/categories'));
+app.use('/products', productsRouter);
+app.use('/categories', categoriesRouter);
 
-// catch 404 and forward to error handler
+// 🔹 Xử lý lỗi 404
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
-// error handler
+// 🔹 Middleware xử lý lỗi chung
 app.use(function(err, req, res, next) {
   res.status(err.status || 500).json({
+    success: false,
     message: err.message,
     error: req.app.get('env') === 'development' ? err : {}
   });
 });
-
 
 module.exports = app;
