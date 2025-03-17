@@ -1,0 +1,4 @@
+node_modules/
+git rm -r --cached node_modules
+git add .gitignore
+git commit -m "Ignore node_modules"
